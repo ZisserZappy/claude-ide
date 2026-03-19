@@ -219,27 +219,54 @@ export function registerIpcHandlers(): void {
     await writeFile(teamStatsConfigFile(), JSON.stringify({ endpoint }, null, 2), 'utf-8')
   })
 
-  // Open a Google sign-in window so Electron's session gets auth cookies
+  // Open a window that loads the Apps Script URL directly — Google will
+  // redirect to sign-in if needed, then show the JSON response
   ipcMain.handle('stats:googleLogin', async () => {
+    const endpoint = await getTeamStatsEndpoint()
+    if (!endpoint) return false
+
     return new Promise<boolean>((resolve) => {
       const authWin = new BrowserWindow({
-        width: 500,
+        width: 600,
         height: 700,
-        title: 'Sign in with Google',
-        webPreferences: { nodeIntegration: false, contextIsolation: true },
+        title: 'Sign in to enable Team Stats',
+        webPreferences: {
+          nodeIntegration: false,
+          contextIsolation: true,
+        },
       })
-      authWin.loadURL('https://accounts.google.com')
 
-      // When they finish signing in and get redirected to myaccount or the apps script
-      authWin.webContents.on('did-navigate', (_event, url) => {
-        if (url.includes('myaccount.google.com') || url.includes('script.google.com') || url.includes('workspace.google.com')) {
-          authWin.close()
-          resolve(true)
+      authWin.loadURL(endpoint)
+
+      let resolved = false
+
+      // Watch for successful load of the Apps Script response (JSON)
+      authWin.webContents.on('did-finish-load', async () => {
+        const url = authWin.webContents.getURL()
+        // If we've landed on the Apps Script exec URL, auth succeeded
+        if (url.includes('script.google.com') && url.includes('/exec')) {
+          try {
+            const text = await authWin.webContents.executeJavaScript('document.body.innerText')
+            if (text.includes('teamSize') || text.includes('"ok"')) {
+              resolved = true
+              authWin.close()
+              resolve(true)
+            }
+          } catch { /* ignore */ }
         }
+        // Also check if the page body looks like JSON (the raw response)
+        try {
+          const text = await authWin.webContents.executeJavaScript('document.body.innerText')
+          if (text.startsWith('{') && (text.includes('teamSize') || text.includes('avgSessions'))) {
+            resolved = true
+            authWin.close()
+            resolve(true)
+          }
+        } catch { /* ignore */ }
       })
 
       authWin.on('closed', () => {
-        resolve(false)
+        if (!resolved) resolve(false)
       })
     })
   })

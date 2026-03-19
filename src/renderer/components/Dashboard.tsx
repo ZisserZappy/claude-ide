@@ -77,16 +77,7 @@ function StatCard({ label, value, color }: { label: string; value: string; color
   )
 }
 
-interface TeamStats {
-  teamSize: number
-  avgSessions: number
-  avgFeatures: number
-  avgCost: number
-}
-
 function estimateTimeSaved(sessions: number, features: number): string {
-  // Conservative estimate: each session saves ~15 min of manual work
-  // Each power feature discovered saves ~5 min per day via efficiency
   const sessionMinutes = sessions * 15
   const featureMinutes = features * 5
   const total = sessionMinutes + featureMinutes
@@ -96,74 +87,15 @@ function estimateTimeSaved(sessions: number, features: number): string {
   return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
 }
 
-function ComparisonBar({ label, you, teamAvg, unit, encouragement }: {
-  label: string
-  you: number
-  teamAvg: number
-  unit?: string
-  encouragement: { ahead: string; behind: string; equal: string }
-}) {
-  const ratio = teamAvg > 0 ? you / teamAvg : 1
-  const isAhead = ratio >= 1.1
-  const isBehind = ratio < 0.9
-  const message = isAhead ? encouragement.ahead : isBehind ? encouragement.behind : encouragement.equal
-  const color = isAhead ? '#89d185' : isBehind ? '#dcdcaa' : '#4fc1ff'
-
-  return (
-    <div style={{ marginBottom: 12 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-        <span style={{ color: '#ccc', fontSize: 12 }}>{label}</span>
-        <span style={{ color: '#888', fontSize: 11 }}>
-          You: <span style={{ color }}>{unit === '$' ? `$${you.toFixed(2)}` : you}</span>
-          {' · '}
-          Team avg: {unit === '$' ? `$${teamAvg.toFixed(2)}` : teamAvg.toFixed(1)}
-        </span>
-      </div>
-      <div style={{ height: 4, background: '#3e3e3e', borderRadius: 2, overflow: 'hidden', marginBottom: 4 }}>
-        <div style={{
-          height: '100%',
-          width: `${Math.min(ratio * 100, 100)}%`,
-          background: color,
-          borderRadius: 2,
-          transition: 'width 0.5s ease',
-        }} />
-      </div>
-      <div style={{ color: '#888', fontSize: 11, fontStyle: 'italic' }}>{message}</div>
-    </div>
-  )
-}
-
 export default function Dashboard({ visible }: { visible: boolean }) {
   const { state, dispatch } = useAppState()
   const [recentSessions, setRecentSessions] = useState<RecentSession[]>([])
-  const [teamStats, setTeamStats] = useState<TeamStats | null>(null)
-  const [statsConfigured, setStatsConfigured] = useState<boolean | null>(null)
-  const [configInput, setConfigInput] = useState('')
 
   useEffect(() => {
     if (visible) {
       window.api.getRecentSessions().then(setRecentSessions)
-      window.api.getStatsEndpoint().then(endpoint => {
-        setStatsConfigured(!!endpoint)
-        if (endpoint) {
-          window.api.getTeamStats().then(setTeamStats)
-        }
-      })
     }
   }, [visible])
-
-  // Post stats every 5 minutes
-  useEffect(() => {
-    const post = () => {
-      const sessions = state.tabs.filter(t => t.type === 'terminal').length
-      const features = state.behavior.featuresUsed.size
-      const cost = state.claudeStatus.cost || '0'
-      window.api.postStats({ sessions, features, cost })
-    }
-    post()
-    const interval = setInterval(post, 5 * 60 * 1000)
-    return () => clearInterval(interval)
-  }, [state.tabs, state.behavior.featuresUsed, state.claudeStatus.cost])
 
   const activeSessions = state.tabs.filter(t => t.type === 'terminal').length
 
@@ -194,10 +126,10 @@ export default function Dashboard({ visible }: { visible: boolean }) {
         marginBottom: 20,
       }}>
         <div style={{ color: '#fff', fontSize: 18, fontWeight: 'bold', marginBottom: 8 }}>
-          Welcome to Claude IDE
+          Welcome! Let's make using Claude Code easy.
         </div>
         <div style={{ color: '#bbb', fontSize: 13, lineHeight: '22px', marginBottom: 16 }}>
-          Your AI pair programmer — ask it to build features, fix bugs, or explain code. Here's how to start:
+          Let's get you cruising! Follow these 3 steps and you'll be up and running. If you have feedback, just Slack <strong style={{ color: '#4fc1ff' }}>Izzy Rogner-Hall</strong>.
         </div>
         <div style={{ display: 'flex', gap: 24 }}>
           {[
@@ -243,173 +175,6 @@ export default function Dashboard({ visible }: { visible: boolean }) {
         />
       </div>
 
-      {/* Team Comparison */}
-      {statsConfigured === true && teamStats && teamStats.teamSize > 1 && (
-        <div style={{
-          background: '#2d2d2d',
-          borderRadius: 6,
-          padding: 16,
-          border: '1px solid #3e3e3e',
-          marginBottom: 16,
-        }}>
-          <div style={{ color: '#888', fontSize: 11, marginBottom: 4, textTransform: 'uppercase', display: 'flex', justifyContent: 'space-between' }}>
-            <span>How You're Doing</span>
-            <span style={{ color: '#555', textTransform: 'none' }}>{teamStats.teamSize} Gusties using Claude today</span>
-          </div>
-          <div style={{ color: '#555', fontSize: 11, marginBottom: 16 }}>
-            You're building momentum! Here's how your usage compares to the team.
-          </div>
-
-          <ComparisonBar
-            label="Sessions Today"
-            you={activeSessions}
-            teamAvg={teamStats.avgSessions}
-            encouragement={{
-              ahead: "You're making great use of Claude — keep it up!",
-              behind: "Try opening another session — each one saves you ~15 minutes of manual work.",
-              equal: "Right on track with the team!",
-            }}
-          />
-          <ComparisonBar
-            label="Features Discovered"
-            you={state.behavior.featuresUsed.size}
-            teamAvg={teamStats.avgFeatures}
-            encouragement={{
-              ahead: "You're a power user! You've found more features than most.",
-              behind: "There's more to discover — try Cmd+P or Cmd+K to unlock new superpowers.",
-              equal: "Keeping pace with the team — nice!",
-            }}
-          />
-          <ComparisonBar
-            label="Cost"
-            you={parseFloat(state.claudeStatus.cost || '0')}
-            teamAvg={teamStats.avgCost}
-            unit="$"
-            encouragement={{
-              ahead: "Investing in productivity — every dollar spent saves you time.",
-              behind: "Efficient spending! You're getting a lot done for less.",
-              equal: "Right in line with the team.",
-            }}
-          />
-        </div>
-      )}
-
-      {/* Sign in prompt — endpoint configured but stats not loading */}
-      {statsConfigured === true && !teamStats && (
-        <div style={{
-          background: '#2d2d2d',
-          borderRadius: 6,
-          padding: 16,
-          border: '1px solid #3e3e3e',
-          marginBottom: 16,
-        }}>
-          <div style={{ color: '#888', fontSize: 11, marginBottom: 8, textTransform: 'uppercase' }}>
-            Team Stats
-          </div>
-          <div style={{ color: '#999', fontSize: 12, marginBottom: 12 }}>
-            Sign in with your Gusto Google account to see how your usage compares to other Gusties.
-          </div>
-          <button
-            onClick={async () => {
-              const success = await window.api.googleLogin()
-              if (success) {
-                const stats = await window.api.getTeamStats()
-                setTeamStats(stats)
-              }
-            }}
-            style={{
-              padding: '10px 20px',
-              background: '#4fc1ff',
-              color: '#000',
-              border: 'none',
-              borderRadius: 4,
-              cursor: 'pointer',
-              fontSize: 13,
-              fontWeight: 'bold',
-            }}
-          >
-            Sign in with Google
-          </button>
-        </div>
-      )}
-
-      {/* Team Stats Setup (only shown if not configured yet) */}
-      {statsConfigured === false && (
-        <div style={{
-          background: '#2d2d2d',
-          borderRadius: 6,
-          padding: 16,
-          border: '1px solid #3e3e3e',
-          marginBottom: 16,
-        }}>
-          <div style={{ color: '#888', fontSize: 11, marginBottom: 8, textTransform: 'uppercase' }}>
-            Team Stats (Optional)
-          </div>
-          <div style={{ color: '#999', fontSize: 12, marginBottom: 12 }}>
-            See how your Claude usage compares to other Gusties. Two quick steps:
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ color: '#4fc1ff', fontWeight: 'bold', fontSize: 13, flexShrink: 0 }}>Step 1</span>
-              <button
-                onClick={async () => {
-                  await window.api.googleLogin()
-                }}
-                style={{
-                  padding: '8px 16px',
-                  background: '#3c3c3c',
-                  color: '#fff',
-                  border: '1px solid #555',
-                  borderRadius: 4,
-                  cursor: 'pointer',
-                  fontSize: 12,
-                }}
-              >
-                Sign in with your Gusto Google account
-              </button>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ color: '#4fc1ff', fontWeight: 'bold', fontSize: 13, flexShrink: 0 }}>Step 2</span>
-              <input
-                value={configInput}
-                onChange={e => setConfigInput(e.target.value)}
-                placeholder="Paste the Apps Script URL here"
-                style={{
-                  flex: 1,
-                  padding: '8px 12px',
-                  background: '#3c3c3c',
-                  border: '1px solid #3e3e3e',
-                  borderRadius: 4,
-                  color: '#fff',
-                  fontSize: 12,
-                  outline: 'none',
-                }}
-              />
-              <button
-                onClick={async () => {
-                  if (configInput.trim()) {
-                    await window.api.setStatsEndpoint(configInput.trim())
-                    setStatsConfigured(true)
-                    window.api.getTeamStats().then(setTeamStats)
-                  }
-                }}
-                style={{
-                  padding: '8px 16px',
-                  background: '#4fc1ff',
-                  color: '#000',
-                  border: 'none',
-                  borderRadius: 4,
-                  cursor: 'pointer',
-                  fontSize: 12,
-                  fontWeight: 'bold',
-                }}
-              >
-                Connect
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Tips for You */}
       <div style={{

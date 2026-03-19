@@ -87,6 +87,22 @@ function estimateTimeSaved(sessions: number, features: number): string {
   return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
 }
 
+function SectionExplainer({ title, description }: { title: string; description: string }) {
+  return (
+    <div style={{
+      color: '#888',
+      fontSize: 11,
+      padding: '8px 0 4px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+    }}>
+      <span style={{ color: '#4fc1ff' }}>↓</span>
+      <span><strong style={{ color: '#aaa' }}>{title}</strong> — {description}</span>
+    </div>
+  )
+}
+
 export default function Dashboard({ visible }: { visible: boolean }) {
   const { state, dispatch } = useAppState()
   const [recentSessions, setRecentSessions] = useState<RecentSession[]>([])
@@ -98,6 +114,7 @@ export default function Dashboard({ visible }: { visible: boolean }) {
   }, [visible])
 
   const activeSessions = state.tabs.filter(t => t.type === 'terminal').length
+  const hasStarted = activeSessions > 0 || recentSessions.length > 0
 
   const handleSessionClick = async (session: RecentSession) => {
     const id = `terminal-${Date.now()}`
@@ -115,56 +132,121 @@ export default function Dashboard({ visible }: { visible: boolean }) {
 
   if (!visible) return null
 
+  // ============================================================
+  // First-time experience — just the 3 steps, nothing else
+  // ============================================================
+  if (!hasStarted) {
+    return (
+      <div style={{ flex: 1, padding: 20, background: '#1e1e1e', overflowY: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ maxWidth: 600 }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #1a2a3a 0%, #2d2d2d 100%)',
+            borderRadius: 12,
+            padding: '32px 36px',
+            border: '1px solid #3e3e3e',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+          }}>
+            <div style={{ color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 8 }}>
+              Welcome! Let's make using Claude Code easy.
+            </div>
+            <div style={{ color: '#bbb', fontSize: 14, lineHeight: '24px', marginBottom: 28 }}>
+              Let's get you cruising! Just 3 steps. If you have feedback, Slack <strong style={{ color: '#4fc1ff' }}>Izzy Rogner-Hall</strong>.
+            </div>
+
+            {[
+              {
+                step: '1',
+                text: 'Click the + button in the top bar',
+                detail: 'This opens a terminal tab. Claude Code starts automatically — no commands to memorize.',
+                highlight: true,
+              },
+              {
+                step: '2',
+                text: 'Type what you want in plain English',
+                detail: 'Just describe what you need: "Fix the login bug", "Add a search bar", "Explain this code". Claude does the rest.',
+              },
+              {
+                step: '3',
+                text: 'Click any file in the sidebar to view it',
+                detail: 'The file opens in an editor. You can edit it, search it (Cmd+F), or ask Claude to change it (select code → Cmd+K).',
+              },
+            ].map(({ step, text, detail, highlight }) => (
+              <div key={step} style={{
+                display: 'flex',
+                gap: 16,
+                alignItems: 'flex-start',
+                marginBottom: 20,
+                padding: highlight ? '16px' : '0',
+                background: highlight ? 'rgba(79, 193, 255, 0.08)' : 'transparent',
+                borderRadius: highlight ? 8 : 0,
+                border: highlight ? '1px solid rgba(79, 193, 255, 0.2)' : 'none',
+              }}>
+                <div style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  background: '#4fc1ff',
+                  color: '#000',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 16,
+                  fontWeight: 'bold',
+                  flexShrink: 0,
+                }}>
+                  {step}
+                </div>
+                <div>
+                  <div style={{ color: '#e8e8e8', fontSize: 14, fontWeight: 'bold', marginBottom: 4 }}>
+                    {text}
+                  </div>
+                  <div style={{ color: '#999', fontSize: 13, lineHeight: '20px' }}>{detail}</div>
+                </div>
+              </div>
+            ))}
+
+            <div style={{
+              marginTop: 8,
+              padding: '12px 16px',
+              background: '#1e1e1e',
+              borderRadius: 6,
+              color: '#888',
+              fontSize: 12,
+              textAlign: 'center',
+              lineHeight: '20px',
+            }}>
+              Start with Step 1 — click the <strong style={{ color: '#4fc1ff' }}>+</strong> button above. Everything else will make sense once you try it.
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ============================================================
+  // Returning user — full dashboard with section explanations
+  // ============================================================
   return (
     <div style={{ flex: 1, padding: 20, background: '#1e1e1e', overflowY: 'auto' }}>
-      {/* Quick Start */}
+      {/* Quick Start (compact for returning users) */}
       <div style={{
         background: 'linear-gradient(135deg, #1a2a3a 0%, #2d2d2d 100%)',
         borderRadius: 8,
-        padding: '20px 24px',
+        padding: '16px 24px',
         border: '1px solid #3e3e3e',
         marginBottom: 20,
       }}>
-        <div style={{ color: '#fff', fontSize: 18, fontWeight: 'bold', marginBottom: 8 }}>
-          Welcome! Let's make using Claude Code easy.
+        <div style={{ color: '#fff', fontSize: 16, fontWeight: 'bold', marginBottom: 6 }}>
+          Welcome back! Let's keep cruising.
         </div>
-        <div style={{ color: '#bbb', fontSize: 13, lineHeight: '22px', marginBottom: 16 }}>
-          Let's get you cruising! Follow these 3 steps and you'll be up and running. If you have feedback, just Slack <strong style={{ color: '#4fc1ff' }}>Izzy Rogner-Hall</strong>.
-        </div>
-        <div style={{ display: 'flex', gap: 24 }}>
-          {[
-            { step: '1', icon: '＋', text: 'Click + above to open a terminal', detail: 'Claude Code starts automatically' },
-            { step: '2', icon: '💬', text: 'Type what you want in plain English', detail: '"Fix the login bug" or "Add a search bar"' },
-            { step: '3', icon: '📂', text: 'Click any file in the sidebar to view it', detail: 'Edit with Cmd+K, search with Cmd+P' },
-          ].map(({ step, icon, text, detail }) => (
-            <div key={step} style={{ flex: 1, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-              <div style={{
-                width: 32,
-                height: 32,
-                borderRadius: '50%',
-                background: '#4fc1ff',
-                color: '#000',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 14,
-                fontWeight: 'bold',
-                flexShrink: 0,
-              }}>
-                {step}
-              </div>
-              <div>
-                <div style={{ color: '#e8e8e8', fontSize: 13, fontWeight: 'bold', marginBottom: 2 }}>
-                  {text}
-                </div>
-                <div style={{ color: '#888', fontSize: 11 }}>{detail}</div>
-              </div>
-            </div>
-          ))}
+        <div style={{ color: '#bbb', fontSize: 12, lineHeight: '20px' }}>
+          Click <strong style={{ color: '#4fc1ff' }}>+</strong> to open a new terminal, or click a file in the sidebar to edit. Feedback? Slack <strong style={{ color: '#4fc1ff' }}>Izzy Rogner-Hall</strong>.
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 16, marginBottom: 20 }}>
+      {/* Stats */}
+      <SectionExplainer title="Your Stats" description="Track your usage and how much time Claude is saving you." />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 16, marginBottom: 20, marginTop: 8 }}>
         <StatCard label="Today's Cost" value={state.claudeStatus.cost || '—'} color="#4fc1ff" />
         <StatCard label="Active Sessions" value={String(activeSessions)} color="#89d185" />
         <StatCard label="Model" value={state.claudeStatus.model || '—'} color="#dcdcaa" />
@@ -175,21 +257,19 @@ export default function Dashboard({ visible }: { visible: boolean }) {
         />
       </div>
 
-
       {/* Tips for You */}
+      <SectionExplainer title="Tips for You" description="Personalized suggestions based on how you're using the app. These appear automatically as you work." />
       <div style={{
         background: '#2d2d2d',
         borderRadius: 6,
         padding: 16,
         border: '1px solid #3e3e3e',
         marginBottom: 16,
+        marginTop: 8,
       }}>
-        <div style={{ color: '#4fc1ff', fontSize: 11, marginBottom: 12, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span>💡</span> Tips for You
-        </div>
         {state.behavior.triggeredTips.length === 0 ? (
           <div style={{ color: '#666', fontSize: 13, padding: '4px 0' }}>
-            Keep going — tips will appear as you work.
+            Keep going — tips will appear here as you work. They'll help you discover features you might not know about.
           </div>
         ) : (
           state.behavior.triggeredTips.map((tip, i) => (
@@ -210,17 +290,17 @@ export default function Dashboard({ visible }: { visible: boolean }) {
         )}
       </div>
 
+      {/* Recent Sessions */}
+      <SectionExplainer title="Recent Sessions" description="Projects you've worked on recently. Click one to jump back in." />
       <div style={{
         background: '#2d2d2d',
         borderRadius: 6,
         padding: 16,
-        border: '1px solid #3e3e3e'
+        border: '1px solid #3e3e3e',
+        marginTop: 8,
       }}>
-        <div style={{ color: '#888', fontSize: 11, marginBottom: 12, textTransform: 'uppercase' }}>
-          Recent Sessions
-        </div>
         {recentSessions.length === 0 && (
-          <div style={{ color: '#666', padding: '8px 0' }}>No recent sessions</div>
+          <div style={{ color: '#666', padding: '8px 0' }}>No recent sessions yet — open a terminal to get started!</div>
         )}
         {recentSessions.map((session, i) => (
           <div
@@ -243,20 +323,14 @@ export default function Dashboard({ visible }: { visible: boolean }) {
       </div>
 
       {/* Claude Code Cheat Sheet */}
+      <SectionExplainer title="Claude Code Cheat Sheet" description="Everything you can do — keyboard shortcuts, terminal commands, and slash commands. Bookmark this section!" />
       <div style={{
         background: '#2d2d2d',
         borderRadius: 6,
         padding: 16,
         border: '1px solid #3e3e3e',
-        marginTop: 16
+        marginTop: 8,
       }}>
-        <div style={{ color: '#888', fontSize: 11, marginBottom: 4, textTransform: 'uppercase' }}>
-          Claude Code Cheat Sheet
-        </div>
-        <div style={{ color: '#555', fontSize: 11, marginBottom: 16 }}>
-          Keyboard shortcuts, terminal commands, and tips. New features appear at the top.
-        </div>
-
         {/* What's New section */}
         {(() => {
           const newEntries = cheatSheet

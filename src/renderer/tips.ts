@@ -73,6 +73,11 @@ export const tips: Tip[] = [
     message: "Don't forget — hit Cmd+S to save any file you edit. Claude can see your saved changes in real time.",
     condition: (ctx) => ctx.featuresUsed.has('fileEdit') && !ctx.featuresUsed.has('fileSave'),
   },
+  {
+    id: 'discover-inline-edit',
+    message: "Select any code and press Cmd+K to have Claude edit it inline — like magic. Just describe what you want changed.",
+    condition: (ctx) => ctx.featuresUsed.has('fileEdit') && !ctx.featuresUsed.has('inlineEdit'),
+  },
 ]
 
 export function evaluateTips(ctx: TipContext, firedIds: Set<string>): Tip | null {

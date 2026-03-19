@@ -15,6 +15,7 @@ const cheatSheet: CheatSheetEntry[] = [
   { command: 'Cmd + Shift + F', description: 'Search across all files in your project — results grouped by file', category: 'keyboard', added: '2026-03-19' },
   { command: 'Cmd + F', description: 'Find text in the current file (when an editor tab is open)', category: 'keyboard', added: '2026-03-19' },
   { command: 'Cmd + H', description: 'Find and replace in the current file', category: 'keyboard', added: '2026-03-19' },
+  { command: 'Cmd + K', description: 'Select code, then Cmd+K to have Claude edit it inline — describe what you want changed', category: 'keyboard', added: '2026-03-19' },
   { command: 'Cmd + S', description: 'Save the current file', category: 'keyboard' },
   { command: '⫿ (split icon)', description: 'Click on any editor tab to view two files side-by-side', category: 'keyboard', added: '2026-03-19' },
 

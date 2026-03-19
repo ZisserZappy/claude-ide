@@ -1,6 +1,10 @@
 import { ipcMain, dialog, app, BrowserWindow } from 'electron'
 import { readdir, readFile, writeFile, stat } from 'fs/promises'
 import { join, relative } from 'path'
+import { execFile } from 'child_process'
+import { promisify } from 'util'
+
+const execFileAsync = promisify(execFile)
 import { getGitFileStatuses, getGitBranch } from './git-status'
 import { createPtySession, writePty, resizePty, destroyPty } from './claude-bridge'
 import { startWatching, stopWatching } from './file-watcher'
@@ -182,5 +186,25 @@ export function registerIpcHandlers(): void {
 
     await walk(projectPath)
     return results
+  })
+
+  // Cmd+K inline edit — sends selected code + prompt to Claude CLI
+  ipcMain.handle('claude:inlineEdit', async (_, code: string, prompt: string, filePath: string): Promise<string> => {
+    const claudePath = join(process.env.HOME || '', '.local', 'bin', 'claude')
+    const fullPrompt = `You are editing code inline. The user selected this code from ${filePath}:\n\n\`\`\`\n${code}\n\`\`\`\n\nThe user's instruction: ${prompt}\n\nRespond with ONLY the replacement code. No explanations, no markdown fences, no commentary. Just the code that should replace the selection.`
+
+    try {
+      const { stdout } = await execFileAsync(claudePath, ['-p', fullPrompt], {
+        timeout: 60000,
+        maxBuffer: 1024 * 1024,
+        env: {
+          ...process.env,
+          PATH: `${process.env.HOME}/.local/bin:${process.env.PATH}`,
+        },
+      })
+      return stdout.trim()
+    } catch (err: any) {
+      throw new Error(`Claude inline edit failed: ${err.message}`)
+    }
   })
 }

@@ -32,6 +32,7 @@ const api = {
   addRecentSession: (projectPath: string) => ipcRenderer.invoke('sessions:addRecent', projectPath),
   listAllFiles: (projectPath: string): Promise<string[]> => ipcRenderer.invoke('fs:listAllFiles', projectPath),
   searchContent: (projectPath: string, query: string): Promise<Array<{ file: string; line: number; text: string }>> => ipcRenderer.invoke('fs:searchContent', projectPath, query),
+  inlineEdit: (code: string, prompt: string, filePath: string): Promise<string> => ipcRenderer.invoke('claude:inlineEdit', code, prompt, filePath),
 }
 
 contextBridge.exposeInMainWorld('api', api)

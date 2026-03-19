@@ -207,7 +207,7 @@ export default function Dashboard({ visible }: { visible: boolean }) {
         }}>
           <div style={{ color: '#888', fontSize: 11, marginBottom: 4, textTransform: 'uppercase', display: 'flex', justifyContent: 'space-between' }}>
             <span>How You're Doing</span>
-            <span style={{ color: '#555', textTransform: 'none' }}>{teamStats.teamSize} people using Claude today</span>
+            <span style={{ color: '#555', textTransform: 'none' }}>{teamStats.teamSize} Gusties using Claude today</span>
           </div>
           <div style={{ color: '#555', fontSize: 11, marginBottom: 16 }}>
             You're building momentum! Here's how your usage compares to the team.
@@ -260,7 +260,7 @@ export default function Dashboard({ visible }: { visible: boolean }) {
             Team Stats (Optional)
           </div>
           <div style={{ color: '#999', fontSize: 12, marginBottom: 12 }}>
-            See how your Claude usage compares to your team. Paste your Google Apps Script URL to enable anonymous team stats.
+            See how your Claude usage compares to other Gusties. Paste your Google Apps Script URL to enable anonymous team stats.
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <input

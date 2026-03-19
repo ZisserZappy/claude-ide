@@ -1,6 +1,6 @@
 # Claude IDE
 
-A desktop app that gives Claude Code a visual interface — file explorer, tabbed terminals, code editor, and a command cheat sheet. Built for PMs and anyone who wants the power of Claude Code without memorizing terminal commands.
+A desktop app that gives Claude Code a visual interface — file explorer, tabbed terminals, code editor, and a command cheat sheet. Built for Gusties and anyone who wants the power of Claude Code without memorizing terminal commands.
 
 ![Mac App](https://img.shields.io/badge/platform-macOS-blue) ![Electron](https://img.shields.io/badge/electron-33-green)
 

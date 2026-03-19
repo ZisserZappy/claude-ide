@@ -2,7 +2,7 @@
 set -e
 
 # ============================================================
-#  Claude IDE — One-Click Setup for PMs
+#  Claude IDE — One-Click Setup for Gusties
 #
 #  Run this script and you'll have Claude IDE in your Dock
 #  in about 2 minutes.

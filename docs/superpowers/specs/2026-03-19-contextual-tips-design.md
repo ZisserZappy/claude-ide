@@ -1,8 +1,8 @@
 # Contextual Tips System — Design Spec
 
-**Goal:** Help PMs discover Claude Code features they don't know about, via behavior-triggered tips that appear as toasts and collect on the Dashboard.
+**Goal:** Help Gusties discover Claude Code features they don't know about, via behavior-triggered tips that appear as toasts and collect on the Dashboard.
 
-**Audience:** PMs at Gusto who know the basics of Claude Code but aren't aware of all its capabilities.
+**Audience:** Gusties (Gusto employees) who know the basics of Claude Code but aren't aware of all its capabilities.
 
 **Voice:** Coach — casual, opinionated, like a colleague sharing shortcuts.
 

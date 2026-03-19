@@ -5,10 +5,19 @@ import type { RecentSession, Tab } from '../../shared/types'
 interface CheatSheetEntry {
   command: string
   description: string
-  category: 'start' | 'session' | 'slash' | 'config'
+  category: 'start' | 'session' | 'slash' | 'config' | 'keyboard'
+  added?: string // date string like '2026-03-19' — entries with this appear in What's New
 }
 
 const cheatSheet: CheatSheetEntry[] = [
+  // Keyboard shortcuts (IDE features)
+  { command: 'Cmd + P', description: 'Quick-open any file by name — fuzzy search across your whole project', category: 'keyboard', added: '2026-03-19' },
+  { command: 'Cmd + Shift + F', description: 'Search across all files in your project — results grouped by file', category: 'keyboard', added: '2026-03-19' },
+  { command: 'Cmd + F', description: 'Find text in the current file (when an editor tab is open)', category: 'keyboard', added: '2026-03-19' },
+  { command: 'Cmd + H', description: 'Find and replace in the current file', category: 'keyboard', added: '2026-03-19' },
+  { command: 'Cmd + S', description: 'Save the current file', category: 'keyboard' },
+  { command: '⫿ (split icon)', description: 'Click on any editor tab to view two files side-by-side', category: 'keyboard', added: '2026-03-19' },
+
   // Starting Claude
   { command: 'claude', description: 'Start a new interactive session in the current directory', category: 'start' },
   { command: 'claude -p "fix the login bug"', description: 'One-shot prompt — get an answer without entering interactive mode', category: 'start' },
@@ -36,6 +45,7 @@ const cheatSheet: CheatSheetEntry[] = [
 ]
 
 const categoryLabels: Record<string, { label: string; color: string }> = {
+  keyboard: { label: 'Keyboard Shortcuts & IDE Features', color: '#ff8c00' },
   start: { label: 'Getting Started', color: '#4fc1ff' },
   slash: { label: 'Slash Commands (use inside a session)', color: '#89d185' },
   session: { label: 'Session Management', color: '#dcdcaa' },
@@ -146,10 +156,70 @@ export default function Dashboard({ visible }: { visible: boolean }) {
           Claude Code Cheat Sheet
         </div>
         <div style={{ color: '#555', fontSize: 11, marginBottom: 16 }}>
-          Commands you can run in any terminal tab. Copy and paste or just remember them.
+          Keyboard shortcuts, terminal commands, and tips. New features appear at the top.
         </div>
 
-        {(['start', 'slash', 'session', 'config'] as const).map(category => {
+        {/* What's New section */}
+        {(() => {
+          const newEntries = cheatSheet
+            .filter(e => e.added)
+            .sort((a, b) => (b.added || '').localeCompare(a.added || ''))
+          if (newEntries.length === 0) return null
+          return (
+            <div style={{
+              marginBottom: 20,
+              background: '#1a2a1a',
+              borderRadius: 6,
+              padding: 12,
+              border: '1px solid #2d4a2d',
+            }}>
+              <div style={{
+                color: '#89d185',
+                fontSize: 12,
+                fontWeight: 'bold',
+                marginBottom: 8,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}>
+                <span style={{ fontSize: 12 }}>★</span> What's New
+              </div>
+              {newEntries.map((entry, i) => (
+                <div
+                  key={i}
+                  style={{
+                    display: 'flex',
+                    padding: '5px 0',
+                    borderBottom: i < newEntries.length - 1 ? '1px solid #2d4a2d' : 'none',
+                    gap: 12,
+                    alignItems: 'baseline',
+                  }}
+                >
+                  <span style={{ color: '#556', fontSize: 10, flexShrink: 0, minWidth: 62 }}>
+                    {entry.added}
+                  </span>
+                  <code style={{
+                    color: '#e8e8e8',
+                    background: '#1e1e1e',
+                    padding: '2px 8px',
+                    borderRadius: 3,
+                    fontSize: 12,
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                    fontFamily: "'SF Mono', Menlo, Consolas, monospace",
+                  }}>
+                    {entry.command}
+                  </code>
+                  <span style={{ color: '#999', fontSize: 12 }}>
+                    {entry.description}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )
+        })()}
+
+        {(['keyboard', 'start', 'slash', 'session', 'config'] as const).map(category => {
           const { label, color } = categoryLabels[category]
           const entries = cheatSheet.filter(e => e.category === category)
           return (

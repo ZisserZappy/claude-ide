@@ -77,15 +77,93 @@ function StatCard({ label, value, color }: { label: string; value: string; color
   )
 }
 
+interface TeamStats {
+  teamSize: number
+  avgSessions: number
+  avgFeatures: number
+  avgCost: number
+}
+
+function estimateTimeSaved(sessions: number, features: number): string {
+  // Conservative estimate: each session saves ~15 min of manual work
+  // Each power feature discovered saves ~5 min per day via efficiency
+  const sessionMinutes = sessions * 15
+  const featureMinutes = features * 5
+  const total = sessionMinutes + featureMinutes
+  if (total < 60) return `${total} min`
+  const hours = Math.floor(total / 60)
+  const mins = total % 60
+  return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
+}
+
+function ComparisonBar({ label, you, teamAvg, unit, encouragement }: {
+  label: string
+  you: number
+  teamAvg: number
+  unit?: string
+  encouragement: { ahead: string; behind: string; equal: string }
+}) {
+  const ratio = teamAvg > 0 ? you / teamAvg : 1
+  const isAhead = ratio >= 1.1
+  const isBehind = ratio < 0.9
+  const message = isAhead ? encouragement.ahead : isBehind ? encouragement.behind : encouragement.equal
+  const color = isAhead ? '#89d185' : isBehind ? '#dcdcaa' : '#4fc1ff'
+
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+        <span style={{ color: '#ccc', fontSize: 12 }}>{label}</span>
+        <span style={{ color: '#888', fontSize: 11 }}>
+          You: <span style={{ color }}>{unit === '$' ? `$${you.toFixed(2)}` : you}</span>
+          {' · '}
+          Team avg: {unit === '$' ? `$${teamAvg.toFixed(2)}` : teamAvg.toFixed(1)}
+        </span>
+      </div>
+      <div style={{ height: 4, background: '#3e3e3e', borderRadius: 2, overflow: 'hidden', marginBottom: 4 }}>
+        <div style={{
+          height: '100%',
+          width: `${Math.min(ratio * 100, 100)}%`,
+          background: color,
+          borderRadius: 2,
+          transition: 'width 0.5s ease',
+        }} />
+      </div>
+      <div style={{ color: '#888', fontSize: 11, fontStyle: 'italic' }}>{message}</div>
+    </div>
+  )
+}
+
 export default function Dashboard({ visible }: { visible: boolean }) {
   const { state, dispatch } = useAppState()
   const [recentSessions, setRecentSessions] = useState<RecentSession[]>([])
+  const [teamStats, setTeamStats] = useState<TeamStats | null>(null)
+  const [statsConfigured, setStatsConfigured] = useState<boolean | null>(null)
+  const [configInput, setConfigInput] = useState('')
 
   useEffect(() => {
     if (visible) {
       window.api.getRecentSessions().then(setRecentSessions)
+      window.api.getStatsEndpoint().then(endpoint => {
+        setStatsConfigured(!!endpoint)
+        if (endpoint) {
+          window.api.getTeamStats().then(setTeamStats)
+        }
+      })
     }
   }, [visible])
+
+  // Post stats every 5 minutes
+  useEffect(() => {
+    const post = () => {
+      const sessions = state.tabs.filter(t => t.type === 'terminal').length
+      const features = state.behavior.featuresUsed.size
+      const cost = state.claudeStatus.cost || '0'
+      window.api.postStats({ sessions, features, cost })
+    }
+    post()
+    const interval = setInterval(post, 5 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [state.tabs, state.behavior.featuresUsed, state.claudeStatus.cost])
 
   const activeSessions = state.tabs.filter(t => t.type === 'terminal').length
 
@@ -107,11 +185,123 @@ export default function Dashboard({ visible }: { visible: boolean }) {
 
   return (
     <div style={{ flex: 1, padding: 20, background: '#1e1e1e', overflowY: 'auto' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 16, marginBottom: 20 }}>
         <StatCard label="Today's Cost" value={state.claudeStatus.cost || '—'} color="#4fc1ff" />
         <StatCard label="Active Sessions" value={String(activeSessions)} color="#89d185" />
         <StatCard label="Model" value={state.claudeStatus.model || '—'} color="#dcdcaa" />
+        <StatCard
+          label="Time Saved Today"
+          value={estimateTimeSaved(activeSessions, state.behavior.featuresUsed.size)}
+          color="#c586c0"
+        />
       </div>
+
+      {/* Team Comparison */}
+      {statsConfigured === true && teamStats && teamStats.teamSize > 1 && (
+        <div style={{
+          background: '#2d2d2d',
+          borderRadius: 6,
+          padding: 16,
+          border: '1px solid #3e3e3e',
+          marginBottom: 16,
+        }}>
+          <div style={{ color: '#888', fontSize: 11, marginBottom: 4, textTransform: 'uppercase', display: 'flex', justifyContent: 'space-between' }}>
+            <span>How You're Doing</span>
+            <span style={{ color: '#555', textTransform: 'none' }}>{teamStats.teamSize} people using Claude today</span>
+          </div>
+          <div style={{ color: '#555', fontSize: 11, marginBottom: 16 }}>
+            You're building momentum! Here's how your usage compares to the team.
+          </div>
+
+          <ComparisonBar
+            label="Sessions Today"
+            you={activeSessions}
+            teamAvg={teamStats.avgSessions}
+            encouragement={{
+              ahead: "You're making great use of Claude — keep it up!",
+              behind: "Try opening another session — each one saves you ~15 minutes of manual work.",
+              equal: "Right on track with the team!",
+            }}
+          />
+          <ComparisonBar
+            label="Features Discovered"
+            you={state.behavior.featuresUsed.size}
+            teamAvg={teamStats.avgFeatures}
+            encouragement={{
+              ahead: "You're a power user! You've found more features than most.",
+              behind: "There's more to discover — try Cmd+P or Cmd+K to unlock new superpowers.",
+              equal: "Keeping pace with the team — nice!",
+            }}
+          />
+          <ComparisonBar
+            label="Cost"
+            you={parseFloat(state.claudeStatus.cost || '0')}
+            teamAvg={teamStats.avgCost}
+            unit="$"
+            encouragement={{
+              ahead: "Investing in productivity — every dollar spent saves you time.",
+              behind: "Efficient spending! You're getting a lot done for less.",
+              equal: "Right in line with the team.",
+            }}
+          />
+        </div>
+      )}
+
+      {/* Team Stats Setup (only shown if not configured yet) */}
+      {statsConfigured === false && (
+        <div style={{
+          background: '#2d2d2d',
+          borderRadius: 6,
+          padding: 16,
+          border: '1px solid #3e3e3e',
+          marginBottom: 16,
+        }}>
+          <div style={{ color: '#888', fontSize: 11, marginBottom: 8, textTransform: 'uppercase' }}>
+            Team Stats (Optional)
+          </div>
+          <div style={{ color: '#999', fontSize: 12, marginBottom: 12 }}>
+            See how your Claude usage compares to your team. Paste your Google Apps Script URL to enable anonymous team stats.
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              value={configInput}
+              onChange={e => setConfigInput(e.target.value)}
+              placeholder="https://script.google.com/macros/s/..."
+              style={{
+                flex: 1,
+                padding: '8px 12px',
+                background: '#3c3c3c',
+                border: '1px solid #3e3e3e',
+                borderRadius: 4,
+                color: '#fff',
+                fontSize: 12,
+                outline: 'none',
+              }}
+            />
+            <button
+              onClick={async () => {
+                if (configInput.trim()) {
+                  await window.api.setStatsEndpoint(configInput.trim())
+                  setStatsConfigured(true)
+                  window.api.getTeamStats().then(setTeamStats)
+                }
+              }}
+              style={{
+                padding: '8px 16px',
+                background: '#4fc1ff',
+                color: '#000',
+                border: 'none',
+                borderRadius: 4,
+                cursor: 'pointer',
+                fontSize: 12,
+                fontWeight: 'bold',
+              }}
+            >
+              Connect
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Tips for You */}
       <div style={{

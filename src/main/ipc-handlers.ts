@@ -11,6 +11,28 @@ import { startWatching, stopWatching } from './file-watcher'
 import type { FileNode, RecentSession } from '../shared/types'
 
 const sessionsFile = () => join(app.getPath('userData'), 'recent-sessions.json')
+const teamStatsConfigFile = () => join(app.getPath('userData'), 'team-stats-config.json')
+const anonIdFile = () => join(app.getPath('userData'), 'anon-id.json')
+
+async function getOrCreateAnonId(): Promise<string> {
+  try {
+    const data = await readFile(anonIdFile(), 'utf-8')
+    return JSON.parse(data).id
+  } catch {
+    const id = 'anon-' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36)
+    await writeFile(anonIdFile(), JSON.stringify({ id }), 'utf-8')
+    return id
+  }
+}
+
+async function getTeamStatsEndpoint(): Promise<string | null> {
+  try {
+    const data = await readFile(teamStatsConfigFile(), 'utf-8')
+    return JSON.parse(data).endpoint || null
+  } catch {
+    return null
+  }
+}
 
 async function loadRecentSessions(): Promise<RecentSession[]> {
   try {
@@ -186,6 +208,45 @@ export function registerIpcHandlers(): void {
 
     await walk(projectPath)
     return results
+  })
+
+  // Team stats config
+  ipcMain.handle('stats:getEndpoint', async () => {
+    return getTeamStatsEndpoint()
+  })
+
+  ipcMain.handle('stats:setEndpoint', async (_, endpoint: string) => {
+    await writeFile(teamStatsConfigFile(), JSON.stringify({ endpoint }, null, 2), 'utf-8')
+  })
+
+  // Post stats to Google Sheets
+  ipcMain.handle('stats:post', async (_, data: { sessions: number; features: number; cost: string }) => {
+    const endpoint = await getTeamStatsEndpoint()
+    if (!endpoint) return null
+    const id = await getOrCreateAnonId()
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, ...data }),
+      })
+      return response.ok
+    } catch {
+      return false
+    }
+  })
+
+  // Fetch team averages
+  ipcMain.handle('stats:getTeam', async () => {
+    const endpoint = await getTeamStatsEndpoint()
+    if (!endpoint) return null
+    try {
+      const response = await fetch(endpoint)
+      if (!response.ok) return null
+      return response.json()
+    } catch {
+      return null
+    }
   })
 
   // Cmd+K inline edit — sends selected code + prompt to Claude CLI

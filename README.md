@@ -1,4 +1,4 @@
-# Gustie IDE
+# Claude IDE
 
 A desktop app that gives Claude Code a visual interface — file explorer, tabbed terminals, code editor, and a command cheat sheet. Built for Gusties and anyone who wants the power of Claude Code without memorizing terminal commands.
 
@@ -44,7 +44,7 @@ bash setup.sh
 
 ## Usage
 
-1. **Launch** Gustie IDE from Applications or Dock
+1. **Launch** Claude IDE from Applications or Dock
 2. **Pick a project folder** when prompted
 3. **Click +** to open a terminal tab — Claude Code starts automatically
 4. **Click any file** in the sidebar to open it in the editor

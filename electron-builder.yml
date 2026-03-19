@@ -1,5 +1,5 @@
-appId: com.claude-ide.app
-productName: Claude IDE
+appId: com.gustie-ide.app
+productName: Gustie IDE
 mac:
   category: public.app-category.developer-tools
   icon: assets/icon.icns

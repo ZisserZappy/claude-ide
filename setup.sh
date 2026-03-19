@@ -2,9 +2,9 @@
 set -e
 
 # ============================================================
-#  Claude IDE — One-Click Setup for Gusties
+#  Gustie IDE — One-Click Setup for Gusties
 #
-#  Run this script and you'll have Claude IDE in your Dock
+#  Run this script and you'll have Gustie IDE in your Dock
 #  in about 2 minutes.
 #
 #  Usage:
@@ -22,7 +22,7 @@ NC='\033[0m'
 
 echo ""
 echo -e "${CYAN}${BOLD}  ╔══════════════════════════════════════╗${NC}"
-echo -e "${CYAN}${BOLD}  ║         Claude IDE Setup             ║${NC}"
+echo -e "${CYAN}${BOLD}  ║         Gustie IDE Setup             ║${NC}"
 echo -e "${CYAN}${BOLD}  ║   Your AI-powered code editor        ║${NC}"
 echo -e "${CYAN}${BOLD}  ╚══════════════════════════════════════╝${NC}"
 echo ""
@@ -106,7 +106,7 @@ if [ -d "$INSTALL_DIR" ]; then
 fi
 
 if [ ! -d "$INSTALL_DIR" ]; then
-  echo -e "${BOLD}Setting up Claude IDE...${NC}"
+  echo -e "${BOLD}Setting up Gustie IDE...${NC}"
 
   # Check if we're running from inside the repo
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -119,7 +119,7 @@ if [ ! -d "$INSTALL_DIR" ]; then
     echo -e "  Cloning from ${CLAUDE_IDE_REPO}..."
     git clone "$CLAUDE_IDE_REPO" "$INSTALL_DIR"
   else
-    echo -e "${RED}  Could not find Claude IDE source.${NC}"
+    echo -e "${RED}  Could not find Gustie IDE source.${NC}"
     echo -e "  Either run this script from inside the claude-ide folder,"
     echo -e "  or set CLAUDE_IDE_REPO to the git URL:"
     echo -e "  ${BOLD}  CLAUDE_IDE_REPO=https://github.com/you/claude-ide.git bash setup.sh${NC}"
@@ -147,7 +147,7 @@ echo -e "  ${GREEN}✓${NC} Native modules configured"
 # Step 4: Build the app
 # -----------------------------------------------------------
 echo ""
-echo -e "${BOLD}Building Claude IDE.app...${NC}"
+echo -e "${BOLD}Building Gustie IDE.app...${NC}"
 echo -e "  (this takes about 1-2 minutes)"
 npm run package 2>&1 | grep -E "packaging|building|✓ built" || true
 echo -e "  ${GREEN}✓${NC} App built successfully"
@@ -157,10 +157,10 @@ echo -e "  ${GREEN}✓${NC} App built successfully"
 # -----------------------------------------------------------
 echo ""
 APP_PATH=""
-if [ -d "dist/mac-arm64/Claude IDE.app" ]; then
-  APP_PATH="dist/mac-arm64/Claude IDE.app"
-elif [ -d "dist/mac/Claude IDE.app" ]; then
-  APP_PATH="dist/mac/Claude IDE.app"
+if [ -d "dist/mac-arm64/Gustie IDE.app" ]; then
+  APP_PATH="dist/mac-arm64/Gustie IDE.app"
+elif [ -d "dist/mac/Gustie IDE.app" ]; then
+  APP_PATH="dist/mac/Gustie IDE.app"
 fi
 
 if [ -z "$APP_PATH" ]; then
@@ -169,11 +169,11 @@ if [ -z "$APP_PATH" ]; then
 fi
 
 echo -e "${BOLD}Installing to Applications...${NC}"
-if [ -d "/Applications/Claude IDE.app" ]; then
-  rm -rf "/Applications/Claude IDE.app"
+if [ -d "/Applications/Gustie IDE.app" ]; then
+  rm -rf "/Applications/Gustie IDE.app"
 fi
-cp -R "$APP_PATH" "/Applications/Claude IDE.app"
-echo -e "  ${GREEN}✓${NC} Installed to /Applications/Claude IDE.app"
+cp -R "$APP_PATH" "/Applications/Gustie IDE.app"
+echo -e "  ${GREEN}✓${NC} Installed to /Applications/Gustie IDE.app"
 
 # -----------------------------------------------------------
 # Step 6: Configure team stats endpoint
@@ -196,8 +196,8 @@ echo -e "${GREEN}${BOLD}  ║       Setup Complete!                ║${NC}"
 echo -e "${GREEN}${BOLD}  ╚══════════════════════════════════════╝${NC}"
 echo ""
 echo -e "  ${BOLD}To launch:${NC}"
-echo -e "    Open ${CYAN}Claude IDE${NC} from your Applications folder"
-echo -e "    — or run: ${BOLD}open '/Applications/Claude IDE.app'${NC}"
+echo -e "    Open ${CYAN}Gustie IDE${NC} from your Applications folder"
+echo -e "    — or run: ${BOLD}open '/Applications/Gustie IDE.app'${NC}"
 echo ""
 echo -e "  ${BOLD}First time tips:${NC}"
 echo -e "    1. Pick a project folder when prompted"
@@ -209,10 +209,10 @@ echo -e "    Right-click the app icon → Options → Keep in Dock"
 echo ""
 
 # Offer to launch
-read -p "  Launch Claude IDE now? (y/n) " -n 1 -r
+read -p "  Launch Gustie IDE now? (y/n) " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-  open "/Applications/Claude IDE.app"
+  open "/Applications/Gustie IDE.app"
   echo -e "  ${GREEN}Launching!${NC}"
 fi
 

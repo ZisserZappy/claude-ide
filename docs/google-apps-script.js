@@ -1,9 +1,9 @@
 // ============================================================
-// Claude IDE — Team Stats Backend (Google Apps Script)
+// Gustie IDE — Team Stats Backend (Google Apps Script)
 //
 // Setup:
 // 1. Go to https://sheets.new to create a new Google Sheet
-// 2. Name it "Claude IDE Team Stats"
+// 2. Name it "Gustie IDE Team Stats"
 // 3. In the sheet, add headers in row 1: id | timestamp | sessions | features | cost
 // 4. Go to Extensions → Apps Script
 // 5. Paste this entire file, replacing the default code
@@ -11,7 +11,7 @@
 //    - Execute as: Me
 //    - Who has access: Anyone
 // 7. Copy the deployment URL
-// 8. In Claude IDE, go to the config and paste the URL
+// 8. In Gustie IDE, go to the config and paste the URL
 //    (or set it in ~/claude-ide/team-stats-config.json)
 // ============================================================
 

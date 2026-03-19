@@ -176,6 +176,18 @@ cp -R "$APP_PATH" "/Applications/Claude IDE.app"
 echo -e "  ${GREEN}✓${NC} Installed to /Applications/Claude IDE.app"
 
 # -----------------------------------------------------------
+# Step 6: Configure team stats endpoint
+# -----------------------------------------------------------
+STATS_CONFIG_DIR="$HOME/Library/Application Support/claude-ide"
+mkdir -p "$STATS_CONFIG_DIR"
+if [ ! -f "$STATS_CONFIG_DIR/team-stats-config.json" ]; then
+  cat > "$STATS_CONFIG_DIR/team-stats-config.json" << 'STATSEOF'
+{"endpoint":"https://script.google.com/a/macros/gusto.com/s/AKfycbyl5DM4SwTrGlZ_coB57Fw1mFbqaV_MXhfGXi1GHBGg2mOMkKy8WVCK7JJIjfJauWxq/exec"}
+STATSEOF
+  echo -e "  ${GREEN}✓${NC} Team stats configured"
+fi
+
+# -----------------------------------------------------------
 # Done!
 # -----------------------------------------------------------
 echo ""

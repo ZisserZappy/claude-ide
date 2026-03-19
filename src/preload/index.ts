@@ -37,6 +37,7 @@ const api = {
   setStatsEndpoint: (endpoint: string): Promise<void> => ipcRenderer.invoke('stats:setEndpoint', endpoint),
   postStats: (data: { sessions: number; features: number; cost: string }): Promise<boolean | null> => ipcRenderer.invoke('stats:post', data),
   getTeamStats: (): Promise<{ teamSize: number; avgSessions: number; avgFeatures: number; avgCost: number } | null> => ipcRenderer.invoke('stats:getTeam'),
+  googleLogin: (): Promise<boolean> => ipcRenderer.invoke('stats:googleLogin'),
 }
 
 contextBridge.exposeInMainWorld('api', api)

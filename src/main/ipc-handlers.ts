@@ -1,4 +1,4 @@
-import { ipcMain, dialog, app, BrowserWindow } from 'electron'
+import { ipcMain, dialog, app, BrowserWindow, net, session } from 'electron'
 import { readdir, readFile, writeFile, stat } from 'fs/promises'
 import { join, relative } from 'path'
 import { execFile } from 'child_process'
@@ -219,16 +219,42 @@ export function registerIpcHandlers(): void {
     await writeFile(teamStatsConfigFile(), JSON.stringify({ endpoint }, null, 2), 'utf-8')
   })
 
-  // Post stats to Google Sheets
+  // Open a Google sign-in window so Electron's session gets auth cookies
+  ipcMain.handle('stats:googleLogin', async () => {
+    return new Promise<boolean>((resolve) => {
+      const authWin = new BrowserWindow({
+        width: 500,
+        height: 700,
+        title: 'Sign in with Google',
+        webPreferences: { nodeIntegration: false, contextIsolation: true },
+      })
+      authWin.loadURL('https://accounts.google.com')
+
+      // When they finish signing in and get redirected to myaccount or the apps script
+      authWin.webContents.on('did-navigate', (_event, url) => {
+        if (url.includes('myaccount.google.com') || url.includes('script.google.com') || url.includes('workspace.google.com')) {
+          authWin.close()
+          resolve(true)
+        }
+      })
+
+      authWin.on('closed', () => {
+        resolve(false)
+      })
+    })
+  })
+
+  // Post stats to Google Sheets (uses Electron net for Google auth)
   ipcMain.handle('stats:post', async (_, data: { sessions: number; features: number; cost: string }) => {
     const endpoint = await getTeamStatsEndpoint()
     if (!endpoint) return null
     const id = await getOrCreateAnonId()
     try {
-      const response = await fetch(endpoint, {
+      const response = await net.fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, ...data }),
+        bypassCustomProtocolHandlers: true,
       })
       return response.ok
     } catch {
@@ -236,14 +262,17 @@ export function registerIpcHandlers(): void {
     }
   })
 
-  // Fetch team averages
+  // Fetch team averages (uses Electron net for Google auth)
   ipcMain.handle('stats:getTeam', async () => {
     const endpoint = await getTeamStatsEndpoint()
     if (!endpoint) return null
     try {
-      const response = await fetch(endpoint)
+      const response = await net.fetch(endpoint, {
+        bypassCustomProtocolHandlers: true,
+      })
       if (!response.ok) return null
-      return response.json()
+      const text = await response.text()
+      return JSON.parse(text)
     } catch {
       return null
     }

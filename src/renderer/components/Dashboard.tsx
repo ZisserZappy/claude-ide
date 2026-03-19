@@ -307,45 +307,67 @@ export default function Dashboard({ visible }: { visible: boolean }) {
             Team Stats (Optional)
           </div>
           <div style={{ color: '#999', fontSize: 12, marginBottom: 12 }}>
-            See how your Claude usage compares to other Gusties. Paste your Google Apps Script URL to enable anonymous team stats.
+            See how your Claude usage compares to other Gusties. Two quick steps:
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input
-              value={configInput}
-              onChange={e => setConfigInput(e.target.value)}
-              placeholder="https://script.google.com/macros/s/..."
-              style={{
-                flex: 1,
-                padding: '8px 12px',
-                background: '#3c3c3c',
-                border: '1px solid #3e3e3e',
-                borderRadius: 4,
-                color: '#fff',
-                fontSize: 12,
-                outline: 'none',
-              }}
-            />
-            <button
-              onClick={async () => {
-                if (configInput.trim()) {
-                  await window.api.setStatsEndpoint(configInput.trim())
-                  setStatsConfigured(true)
-                  window.api.getTeamStats().then(setTeamStats)
-                }
-              }}
-              style={{
-                padding: '8px 16px',
-                background: '#4fc1ff',
-                color: '#000',
-                border: 'none',
-                borderRadius: 4,
-                cursor: 'pointer',
-                fontSize: 12,
-                fontWeight: 'bold',
-              }}
-            >
-              Connect
-            </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ color: '#4fc1ff', fontWeight: 'bold', fontSize: 13, flexShrink: 0 }}>Step 1</span>
+              <button
+                onClick={async () => {
+                  await window.api.googleLogin()
+                }}
+                style={{
+                  padding: '8px 16px',
+                  background: '#3c3c3c',
+                  color: '#fff',
+                  border: '1px solid #555',
+                  borderRadius: 4,
+                  cursor: 'pointer',
+                  fontSize: 12,
+                }}
+              >
+                Sign in with your Gusto Google account
+              </button>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ color: '#4fc1ff', fontWeight: 'bold', fontSize: 13, flexShrink: 0 }}>Step 2</span>
+              <input
+                value={configInput}
+                onChange={e => setConfigInput(e.target.value)}
+                placeholder="Paste the Apps Script URL here"
+                style={{
+                  flex: 1,
+                  padding: '8px 12px',
+                  background: '#3c3c3c',
+                  border: '1px solid #3e3e3e',
+                  borderRadius: 4,
+                  color: '#fff',
+                  fontSize: 12,
+                  outline: 'none',
+                }}
+              />
+              <button
+                onClick={async () => {
+                  if (configInput.trim()) {
+                    await window.api.setStatsEndpoint(configInput.trim())
+                    setStatsConfigured(true)
+                    window.api.getTeamStats().then(setTeamStats)
+                  }
+                }}
+                style={{
+                  padding: '8px 16px',
+                  background: '#4fc1ff',
+                  color: '#000',
+                  border: 'none',
+                  borderRadius: 4,
+                  cursor: 'pointer',
+                  fontSize: 12,
+                  fontWeight: 'bold',
+                }}
+              >
+                Connect
+              </button>
+            </div>
           </div>
         </div>
       )}

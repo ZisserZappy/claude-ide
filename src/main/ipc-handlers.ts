@@ -107,6 +107,20 @@ export function registerIpcHandlers(): void {
     await saveRecentSessions(sessions)
   })
 
+  ipcMain.handle('sessions:saveQuery', async (_, projectPath: string, query: string) => {
+    const sessions = await loadRecentSessions()
+    const session = sessions.find(s => s.projectPath === projectPath)
+    if (session) {
+      if (!session.queries) session.queries = []
+      // Keep last 20 queries, avoid duplicates of the same consecutive query
+      if (session.queries[0] !== query) {
+        session.queries.unshift(query)
+        if (session.queries.length > 20) session.queries.length = 20
+      }
+      await saveRecentSessions(sessions)
+    }
+  })
+
   ipcMain.handle('pty:create', async (event, projectPath: string) => {
     const window = BrowserWindow.fromWebContents(event.sender)
     if (!window) throw new Error('No window found')

@@ -160,7 +160,7 @@ export default function EditorTab({ tabId, filePath, visible }: Props) {
       <Editor
         defaultValue={content}
         language={getLanguage(filePath)}
-        theme="vs-dark"
+        theme="vs"
         onMount={handleEditorMount}
         onChange={handleChange}
         options={{
@@ -185,16 +185,24 @@ export default function EditorTab({ tabId, filePath, visible }: Props) {
             zIndex: 1000,
             display: 'flex',
             alignItems: 'center',
-            gap: 8,
-            background: '#252526',
-            border: '1px solid #4fc1ff',
-            borderRadius: 6,
-            padding: '6px 10px',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
-            minWidth: 320,
+            gap: 10,
+            background: '#FFFFFF',
+            border: '1px solid #2563EB',
+            borderRadius: 10,
+            padding: '10px 14px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+            minWidth: 360,
           }}
         >
-          <span style={{ color: '#4fc1ff', fontSize: 12, fontWeight: 'bold', flexShrink: 0 }}>
+          <span style={{
+            color: '#2563EB',
+            fontSize: 12,
+            fontWeight: 600,
+            flexShrink: 0,
+            background: '#EEF2FF',
+            padding: '2px 8px',
+            borderRadius: 4,
+          }}>
             {inlineLoading ? '⏳' : '⌘K'}
           </span>
           <input
@@ -208,7 +216,7 @@ export default function EditorTab({ tabId, filePath, visible }: Props) {
               flex: 1,
               background: 'transparent',
               border: 'none',
-              color: '#fff',
+              color: '#1A1A1A',
               fontSize: 13,
               outline: 'none',
               fontFamily: "'SF Mono', Menlo, Consolas, monospace",
@@ -217,7 +225,7 @@ export default function EditorTab({ tabId, filePath, visible }: Props) {
           {!inlineLoading && (
             <span
               onClick={() => { setInlineEdit(null); setInlinePrompt(''); editorRef.current?.focus() }}
-              style={{ color: '#666', cursor: 'pointer', fontSize: 14 }}
+              style={{ color: '#999999', cursor: 'pointer', fontSize: 14 }}
             >
               ×
             </span>

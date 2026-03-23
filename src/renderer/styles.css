@@ -5,10 +5,10 @@
 }
 
 body {
-  font-family: 'SF Mono', 'Menlo', 'Consolas', 'Liberation Mono', monospace;
-  font-size: 13px;
-  background: #1e1e1e;
-  color: #cccccc;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', 'Segoe UI', system-ui, sans-serif;
+  font-size: 14px;
+  background: #FAFAFA;
+  color: #1A1A1A;
   overflow: hidden;
   -webkit-user-select: none;
   user-select: none;
@@ -19,14 +19,14 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #1e1e1e;
+  background: #FAFAFA;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #424242;
+  background: #D4D4D4;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #BFBFBF;
 }

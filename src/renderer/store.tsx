@@ -14,6 +14,7 @@ interface AppState {
   activeTabId: string
   projectPath: string | null
   sidebarOpen: boolean
+  cheatSheetOpen: boolean
   claudeStatus: ClaudeStatus
   gitBranch: string | null
   splitTabId: string | null
@@ -32,6 +33,9 @@ type Action =
   | { type: 'UPDATE_TAB_LABEL'; tabId: string; label: string }
   | { type: 'SET_SPLIT_TAB'; tabId: string | null }
   | { type: 'OPEN_IN_SPLIT'; tab: Tab }
+  | { type: 'TOGGLE_CHEAT_SHEET' }
+  | { type: 'SET_TAB_EXITED'; tabId: string }
+  | { type: 'RESTART_TAB'; tabId: string; ptyId: string }
   | { type: 'TRACK_FEATURE'; feature: string }
   | { type: 'FIRE_TIP'; tipId: string; message: string }
   | { type: 'SET_FIRST_LAUNCH'; isFirst: boolean }
@@ -48,6 +52,7 @@ const initialState: AppState = {
   activeTabId: 'dashboard',
   projectPath: null,
   sidebarOpen: true,
+  cheatSheetOpen: false,
   claudeStatus: { model: null, cost: null, tokens: null, context: null },
   gitBranch: null,
   splitTabId: null,
@@ -95,6 +100,12 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, splitTabId: action.tabId }
     case 'OPEN_IN_SPLIT':
       return { ...state, tabs: [...state.tabs, action.tab], splitTabId: action.tab.id }
+    case 'TOGGLE_CHEAT_SHEET':
+      return { ...state, cheatSheetOpen: !state.cheatSheetOpen }
+    case 'SET_TAB_EXITED':
+      return { ...state, tabs: state.tabs.map(t => t.id === action.tabId ? { ...t, exited: true } : t) }
+    case 'RESTART_TAB':
+      return { ...state, tabs: state.tabs.map(t => t.id === action.tabId ? { ...t, ptyId: action.ptyId, exited: false } : t) }
     case 'TRACK_FEATURE': {
       const featuresUsed = new Set(state.behavior.featuresUsed)
       featuresUsed.add(action.feature)

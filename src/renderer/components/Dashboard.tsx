@@ -1,57 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAppState } from '../store'
 import type { RecentSession, Tab } from '../../shared/types'
-
-interface CheatSheetEntry {
-  command: string
-  description: string
-  category: 'start' | 'session' | 'slash' | 'config' | 'keyboard'
-  added?: string // date string like '2026-03-19' — entries with this appear in What's New
-}
-
-const cheatSheet: CheatSheetEntry[] = [
-  // Keyboard shortcuts (IDE features)
-  { command: 'Cmd + P', description: 'Quick-open any file by name — fuzzy search across your whole project', category: 'keyboard', added: '2026-03-19' },
-  { command: 'Cmd + Shift + F', description: 'Search across all files in your project — results grouped by file', category: 'keyboard', added: '2026-03-19' },
-  { command: 'Cmd + F', description: 'Find text in the current file (when an editor tab is open)', category: 'keyboard', added: '2026-03-19' },
-  { command: 'Cmd + H', description: 'Find and replace in the current file', category: 'keyboard', added: '2026-03-19' },
-  { command: 'Cmd + K', description: 'Select code, then Cmd+K to have Claude edit it inline — describe what you want changed', category: 'keyboard', added: '2026-03-19' },
-  { command: 'Cmd + S', description: 'Save the current file', category: 'keyboard' },
-  { command: '⫿ (split icon)', description: 'Click on any editor tab to view two files side-by-side', category: 'keyboard', added: '2026-03-19' },
-
-  // Starting Claude
-  { command: 'claude', description: 'Start a new interactive session in the current directory', category: 'start' },
-  { command: 'claude -p "fix the login bug"', description: 'One-shot prompt — get an answer without entering interactive mode', category: 'start' },
-  { command: 'claude --resume', description: 'Pick up where you left off — resume your most recent conversation', category: 'start' },
-  { command: 'claude --model sonnet', description: 'Start with a specific model (opus, sonnet, haiku) — sonnet is faster & cheaper', category: 'start' },
-
-  // In-session slash commands
-  { command: '/help', description: 'Show all available commands and what they do', category: 'slash' },
-  { command: '/compact', description: 'Shrink your conversation to free up context — essential for long sessions', category: 'slash' },
-  { command: '/clear', description: 'Wipe the conversation and start fresh without restarting', category: 'slash' },
-  { command: '/cost', description: 'See how much this session has cost so far', category: 'slash' },
-  { command: '/model sonnet', description: 'Switch models mid-conversation without restarting', category: 'slash' },
-  { command: '/vim', description: 'Toggle vim keybindings for the input', category: 'slash' },
-  { command: '/permissions', description: 'See and change what Claude is allowed to do (file edits, bash, etc.)', category: 'slash' },
-
-  // Managing sessions
-  { command: 'claude --continue', description: 'Continue the last conversation (same as --resume but non-interactive)', category: 'session' },
-  { command: 'claude -p "summarize" --resume', description: 'Resume a past session and immediately send a follow-up prompt', category: 'session' },
-  { command: 'claude --output-format json', description: 'Get structured JSON output — great for piping into other tools', category: 'session' },
-
-  // Config & setup
-  { command: 'claude config', description: 'Open the settings menu — set API keys, default model, permissions', category: 'config' },
-  { command: 'claude update', description: 'Update Claude Code to the latest version', category: 'config' },
-  { command: 'claude mcp', description: 'Manage MCP servers — connect Claude to external tools and data sources', category: 'config' },
-]
-
-const categoryLabels: Record<string, { label: string; color: string }> = {
-  keyboard: { label: 'Keyboard Shortcuts & IDE Features', color: '#ff8c00' },
-  start: { label: 'Getting Started', color: '#4fc1ff' },
-  slash: { label: 'Slash Commands (use inside a session)', color: '#89d185' },
-  session: { label: 'Session Management', color: '#dcdcaa' },
-  config: { label: 'Config & Updates', color: '#c586c0' },
-}
+import { cheatSheet, categoryLabels } from '../../shared/commands'
 
 function formatTimeAgo(timestamp: number): string {
   const seconds = Math.floor((Date.now() - timestamp) / 1000)
@@ -66,12 +16,13 @@ function formatTimeAgo(timestamp: number): string {
 function StatCard({ label, value, color }: { label: string; value: string; color: string }) {
   return (
     <div style={{
-      background: '#2d2d2d',
-      borderRadius: 6,
-      padding: 16,
-      border: '1px solid #3e3e3e'
+      background: '#FFFFFF',
+      borderRadius: 12,
+      padding: 20,
+      border: '1px solid #E5E5E5',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
     }}>
-      <div style={{ color: '#888', fontSize: 11, marginBottom: 4, textTransform: 'uppercase' }}>{label}</div>
+      <div style={{ color: '#666666', fontSize: 11, marginBottom: 6, textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.5 }}>{label}</div>
       <div style={{ color, fontSize: 22, fontWeight: 'bold' }}>{value}</div>
     </div>
   )
@@ -90,15 +41,15 @@ function estimateTimeSaved(sessions: number, features: number): string {
 function SectionExplainer({ title, description }: { title: string; description: string }) {
   return (
     <div style={{
-      color: '#888',
-      fontSize: 11,
-      padding: '8px 0 4px',
+      color: '#666666',
+      fontSize: 12,
+      padding: '10px 0 6px',
       display: 'flex',
       alignItems: 'center',
       gap: 8,
     }}>
-      <span style={{ color: '#4fc1ff' }}>↓</span>
-      <span><strong style={{ color: '#aaa' }}>{title}</strong> — {description}</span>
+      <span style={{ color: '#2563EB' }}>↓</span>
+      <span><strong style={{ color: '#1A1A1A' }}>{title}</strong> — {description}</span>
     </div>
   )
 }
@@ -137,20 +88,20 @@ export default function Dashboard({ visible }: { visible: boolean }) {
   // ============================================================
   if (!hasStarted) {
     return (
-      <div style={{ flex: 1, padding: 20, background: '#1e1e1e', overflowY: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ flex: 1, padding: 24, background: '#FAFAFA', overflowY: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ maxWidth: 600 }}>
           <div style={{
-            background: 'linear-gradient(135deg, #1a2a3a 0%, #2d2d2d 100%)',
-            borderRadius: 12,
-            padding: '32px 36px',
-            border: '1px solid #3e3e3e',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+            background: 'linear-gradient(135deg, #EEF2FF 0%, #FFFFFF 100%)',
+            borderRadius: 16,
+            padding: '36px 40px',
+            border: '1px solid #E5E5E5',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
           }}>
-            <div style={{ color: '#fff', fontSize: 22, fontWeight: 'bold', marginBottom: 8 }}>
+            <div style={{ color: '#1A1A1A', fontSize: 24, fontWeight: 600, marginBottom: 8 }}>
               Welcome! Let's make using Claude Code easy.
             </div>
-            <div style={{ color: '#bbb', fontSize: 14, lineHeight: '24px', marginBottom: 28 }}>
-              Let's get you cruising! Just 3 steps. If you have feedback, Slack <strong style={{ color: '#4fc1ff' }}>Izzy Rogner-Hall</strong>.
+            <div style={{ color: '#666666', fontSize: 15, lineHeight: '24px', marginBottom: 32 }}>
+              Just 3 steps to get started. If you have feedback, Slack <strong style={{ color: '#2563EB' }}>Izzy Rogner-Hall</strong>.
             </div>
 
             {[
@@ -177,45 +128,46 @@ export default function Dashboard({ visible }: { visible: boolean }) {
                 alignItems: 'flex-start',
                 marginBottom: 20,
                 padding: highlight ? '16px' : '0',
-                background: highlight ? 'rgba(79, 193, 255, 0.08)' : 'transparent',
-                borderRadius: highlight ? 8 : 0,
-                border: highlight ? '1px solid rgba(79, 193, 255, 0.2)' : 'none',
+                background: highlight ? 'rgba(37, 99, 235, 0.06)' : 'transparent',
+                borderRadius: highlight ? 12 : 0,
+                border: highlight ? '1px solid rgba(37, 99, 235, 0.15)' : 'none',
               }}>
                 <div style={{
-                  width: 36,
-                  height: 36,
+                  width: 40,
+                  height: 40,
                   borderRadius: '50%',
-                  background: '#4fc1ff',
-                  color: '#000',
+                  background: '#2563EB',
+                  color: '#FFFFFF',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: 16,
-                  fontWeight: 'bold',
+                  fontWeight: 600,
                   flexShrink: 0,
+                  boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)',
                 }}>
                   {step}
                 </div>
                 <div>
-                  <div style={{ color: '#e8e8e8', fontSize: 14, fontWeight: 'bold', marginBottom: 4 }}>
+                  <div style={{ color: '#1A1A1A', fontSize: 15, fontWeight: 600, marginBottom: 4 }}>
                     {text}
                   </div>
-                  <div style={{ color: '#999', fontSize: 13, lineHeight: '20px' }}>{detail}</div>
+                  <div style={{ color: '#666666', fontSize: 13, lineHeight: '20px' }}>{detail}</div>
                 </div>
               </div>
             ))}
 
             <div style={{
               marginTop: 8,
-              padding: '12px 16px',
-              background: '#1e1e1e',
-              borderRadius: 6,
-              color: '#888',
-              fontSize: 12,
+              padding: '14px 18px',
+              background: '#F5F5F5',
+              borderRadius: 10,
+              color: '#666666',
+              fontSize: 13,
               textAlign: 'center',
               lineHeight: '20px',
             }}>
-              Start with Step 1 — click the <strong style={{ color: '#4fc1ff' }}>+</strong> button above. Everything else will make sense once you try it.
+              Start with Step 1 — click the <strong style={{ color: '#2563EB' }}>+</strong> button above. Everything else will make sense once you try it.
             </div>
           </div>
         </div>
@@ -227,48 +179,50 @@ export default function Dashboard({ visible }: { visible: boolean }) {
   // Returning user — full dashboard with section explanations
   // ============================================================
   return (
-    <div style={{ flex: 1, padding: 20, background: '#1e1e1e', overflowY: 'auto' }}>
+    <div style={{ flex: 1, padding: 24, background: '#FAFAFA', overflowY: 'auto' }}>
       {/* Quick Start (compact for returning users) */}
       <div style={{
-        background: 'linear-gradient(135deg, #1a2a3a 0%, #2d2d2d 100%)',
-        borderRadius: 8,
-        padding: '16px 24px',
-        border: '1px solid #3e3e3e',
-        marginBottom: 20,
+        background: 'linear-gradient(135deg, #EEF2FF 0%, #FFFFFF 100%)',
+        borderRadius: 12,
+        padding: '18px 24px',
+        border: '1px solid #E5E5E5',
+        marginBottom: 24,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
       }}>
-        <div style={{ color: '#fff', fontSize: 16, fontWeight: 'bold', marginBottom: 6 }}>
+        <div style={{ color: '#1A1A1A', fontSize: 17, fontWeight: 600, marginBottom: 6 }}>
           Welcome back! Let's keep cruising.
         </div>
-        <div style={{ color: '#bbb', fontSize: 12, lineHeight: '20px' }}>
-          Click <strong style={{ color: '#4fc1ff' }}>+</strong> to open a new terminal, or click a file in the sidebar to edit. Feedback? Slack <strong style={{ color: '#4fc1ff' }}>Izzy Rogner-Hall</strong>.
+        <div style={{ color: '#666666', fontSize: 13, lineHeight: '20px' }}>
+          Click <strong style={{ color: '#2563EB' }}>+</strong> to open a new terminal, or click a file in the sidebar to edit. Feedback? Slack <strong style={{ color: '#2563EB' }}>Izzy Rogner-Hall</strong>.
         </div>
       </div>
 
       {/* Stats */}
       <SectionExplainer title="Your Stats" description="Track your usage and how much time Claude is saving you." />
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 16, marginBottom: 20, marginTop: 8 }}>
-        <StatCard label="Today's Cost" value={state.claudeStatus.cost || '—'} color="#4fc1ff" />
-        <StatCard label="Active Sessions" value={String(activeSessions)} color="#89d185" />
-        <StatCard label="Model" value={state.claudeStatus.model || '—'} color="#dcdcaa" />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 16, marginBottom: 24, marginTop: 8 }}>
+        <StatCard label="Today's Cost" value={state.claudeStatus.cost || '—'} color="#2563EB" />
+        <StatCard label="Active Sessions" value={String(activeSessions)} color="#10B981" />
+        <StatCard label="Model" value={state.claudeStatus.model || '—'} color="#F59E0B" />
         <StatCard
           label="Time Saved Today"
           value={estimateTimeSaved(activeSessions, state.behavior.featuresUsed.size)}
-          color="#c586c0"
+          color="#8B5CF6"
         />
       </div>
 
       {/* Tips for You */}
       <SectionExplainer title="Tips for You" description="Personalized suggestions based on how you're using the app. These appear automatically as you work." />
       <div style={{
-        background: '#2d2d2d',
-        borderRadius: 6,
-        padding: 16,
-        border: '1px solid #3e3e3e',
-        marginBottom: 16,
+        background: '#FFFFFF',
+        borderRadius: 12,
+        padding: 20,
+        border: '1px solid #E5E5E5',
+        marginBottom: 20,
         marginTop: 8,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
       }}>
         {state.behavior.triggeredTips.length === 0 ? (
-          <div style={{ color: '#666', fontSize: 13, padding: '4px 0' }}>
+          <div style={{ color: '#999999', fontSize: 13, padding: '4px 0' }}>
             Keep going — tips will appear here as you work. They'll help you discover features you might not know about.
           </div>
         ) : (
@@ -276,15 +230,15 @@ export default function Dashboard({ visible }: { visible: boolean }) {
             <div
               key={tip.id}
               style={{
-                padding: '8px 0',
-                borderBottom: i < state.behavior.triggeredTips.length - 1 ? '1px solid #3e3e3e' : 'none',
+                padding: '10px 0',
+                borderBottom: i < state.behavior.triggeredTips.length - 1 ? '1px solid #F0F0F0' : 'none',
                 display: 'flex',
                 gap: 10,
                 alignItems: 'baseline',
               }}
             >
-              <span style={{ color: '#4fc1ff', fontSize: 12, flexShrink: 0 }}>💡</span>
-              <span style={{ color: '#ccc', fontSize: 13 }}>{tip.message}</span>
+              <span style={{ color: '#2563EB', fontSize: 14, flexShrink: 0 }}>💡</span>
+              <span style={{ color: '#1A1A1A', fontSize: 13 }}>{tip.message}</span>
             </div>
           ))
         )}
@@ -293,31 +247,50 @@ export default function Dashboard({ visible }: { visible: boolean }) {
       {/* Recent Sessions */}
       <SectionExplainer title="Recent Sessions" description="Projects you've worked on recently. Click one to jump back in." />
       <div style={{
-        background: '#2d2d2d',
-        borderRadius: 6,
-        padding: 16,
-        border: '1px solid #3e3e3e',
+        background: '#FFFFFF',
+        borderRadius: 12,
+        padding: 20,
+        border: '1px solid #E5E5E5',
         marginTop: 8,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
       }}>
         {recentSessions.length === 0 && (
-          <div style={{ color: '#666', padding: '8px 0' }}>No recent sessions yet — open a terminal to get started!</div>
+          <div style={{ color: '#999999', padding: '8px 0' }}>No recent sessions yet — open a terminal to get started!</div>
         )}
         {recentSessions.map((session, i) => (
           <div
             key={session.projectPath}
             onClick={() => handleSessionClick(session)}
             style={{
-              padding: '8px 0',
-              borderBottom: i < recentSessions.length - 1 ? '1px solid #3e3e3e' : 'none',
-              display: 'flex',
-              justifyContent: 'space-between',
-              cursor: 'pointer'
+              padding: '10px 0',
+              borderBottom: i < recentSessions.length - 1 ? '1px solid #F0F0F0' : 'none',
+              cursor: 'pointer',
+              borderRadius: 6,
             }}
-            onMouseEnter={e => (e.currentTarget.style.background = '#353535')}
+            onMouseEnter={e => (e.currentTarget.style.background = '#F5F5F5')}
             onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
           >
-            <span style={{ color: '#4fc1ff' }}>{session.projectPath.split('/').pop()}</span>
-            <span style={{ color: '#888' }}>{formatTimeAgo(session.lastOpened)}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: '#2563EB', fontWeight: 500 }}>{session.projectPath.split('/').pop()}</span>
+              <span style={{ color: '#999999', fontSize: 12 }}>{formatTimeAgo(session.lastOpened)}</span>
+            </div>
+            {session.queries && session.queries.length > 0 && (
+              <div style={{ marginTop: 4 }}>
+                {session.queries.slice(0, 3).map((q, qi) => (
+                  <div key={qi} style={{
+                    color: '#888888',
+                    fontSize: 12,
+                    lineHeight: '18px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    paddingLeft: 2,
+                  }}>
+                    "{q}"
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -325,11 +298,12 @@ export default function Dashboard({ visible }: { visible: boolean }) {
       {/* Claude Code Cheat Sheet */}
       <SectionExplainer title="Claude Code Cheat Sheet" description="Everything you can do — keyboard shortcuts, terminal commands, and slash commands. Bookmark this section!" />
       <div style={{
-        background: '#2d2d2d',
-        borderRadius: 6,
-        padding: 16,
-        border: '1px solid #3e3e3e',
+        background: '#FFFFFF',
+        borderRadius: 12,
+        padding: 20,
+        border: '1px solid #E5E5E5',
         marginTop: 8,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
       }}>
         {/* What's New section */}
         {(() => {
@@ -339,24 +313,24 @@ export default function Dashboard({ visible }: { visible: boolean }) {
           if (newEntries.length === 0) return null
           return (
             <div style={{
-              marginBottom: 20,
-              background: '#1a2a1a',
-              borderRadius: 6,
-              padding: 12,
-              border: '1px solid #2d4a2d',
+              marginBottom: 24,
+              background: '#F0FDF4',
+              borderRadius: 10,
+              padding: 16,
+              border: '1px solid #BBF7D0',
             }}>
               <div style={{
-                color: '#89d185',
-                fontSize: 12,
-                fontWeight: 'bold',
+                color: '#10B981',
+                fontSize: 13,
+                fontWeight: 600,
                 marginBottom: 8,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
               }}>
-                <span style={{ fontSize: 12 }}>★</span> What's New
+                <span style={{ fontSize: 13 }}>★</span> What's New
               </div>
-              <div style={{ color: '#7a9a7a', fontSize: 11, marginBottom: 10 }}>
+              <div style={{ color: '#6B7280', fontSize: 12, marginBottom: 12 }}>
                 As new features and commands are added, they'll show up here so you can try them.
               </div>
               {newEntries.map((entry, i) => (
@@ -364,28 +338,29 @@ export default function Dashboard({ visible }: { visible: boolean }) {
                   key={i}
                   style={{
                     display: 'flex',
-                    padding: '5px 0',
-                    borderBottom: i < newEntries.length - 1 ? '1px solid #2d4a2d' : 'none',
+                    padding: '6px 0',
+                    borderBottom: i < newEntries.length - 1 ? '1px solid #D1FAE5' : 'none',
                     gap: 12,
                     alignItems: 'baseline',
                   }}
                 >
-                  <span style={{ color: '#556', fontSize: 10, flexShrink: 0, minWidth: 62 }}>
+                  <span style={{ color: '#9CA3AF', fontSize: 10, flexShrink: 0, minWidth: 62 }}>
                     {entry.added}
                   </span>
                   <code style={{
-                    color: '#e8e8e8',
-                    background: '#1e1e1e',
-                    padding: '2px 8px',
-                    borderRadius: 3,
+                    color: '#1A1A1A',
+                    background: '#FFFFFF',
+                    padding: '3px 10px',
+                    borderRadius: 6,
                     fontSize: 12,
                     whiteSpace: 'nowrap',
                     flexShrink: 0,
                     fontFamily: "'SF Mono', Menlo, Consolas, monospace",
+                    border: '1px solid #E5E5E5',
                   }}>
                     {entry.command}
                   </code>
-                  <span style={{ color: '#999', fontSize: 12 }}>
+                  <span style={{ color: '#666666', fontSize: 12 }}>
                     {entry.description}
                   </span>
                 </div>
@@ -398,8 +373,8 @@ export default function Dashboard({ visible }: { visible: boolean }) {
           const { label, color } = categoryLabels[category]
           const entries = cheatSheet.filter(e => e.category === category)
           return (
-            <div key={category} style={{ marginBottom: 16 }}>
-              <div style={{ color, fontSize: 12, fontWeight: 'bold', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div key={category} style={{ marginBottom: 20 }}>
+              <div style={{ color, fontSize: 13, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ fontSize: 8 }}>●</span> {label}
               </div>
               {entries.map((entry, i) => (
@@ -407,25 +382,26 @@ export default function Dashboard({ visible }: { visible: boolean }) {
                   key={i}
                   style={{
                     display: 'flex',
-                    padding: '6px 0',
-                    borderBottom: i < entries.length - 1 ? '1px solid #333' : 'none',
+                    padding: '7px 0',
+                    borderBottom: i < entries.length - 1 ? '1px solid #F0F0F0' : 'none',
                     gap: 16,
                     alignItems: 'baseline',
                   }}
                 >
                   <code style={{
-                    color: '#e8e8e8',
-                    background: '#1e1e1e',
-                    padding: '2px 8px',
-                    borderRadius: 3,
+                    color: '#1A1A1A',
+                    background: '#F5F5F5',
+                    padding: '4px 10px',
+                    borderRadius: 6,
                     fontSize: 12,
                     whiteSpace: 'nowrap',
                     flexShrink: 0,
                     fontFamily: "'SF Mono', Menlo, Consolas, monospace",
+                    border: '1px solid #E5E5E5',
                   }}>
                     {entry.command}
                   </code>
-                  <span style={{ color: '#999', fontSize: 12 }}>
+                  <span style={{ color: '#666666', fontSize: 13 }}>
                     {entry.description}
                   </span>
                 </div>

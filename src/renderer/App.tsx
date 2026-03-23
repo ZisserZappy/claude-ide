@@ -12,6 +12,7 @@ import StatusBar from './components/StatusBar'
 import QuickOpen from './components/QuickOpen'
 import ProjectSearch from './components/ProjectSearch'
 import Toast from './components/Toast'
+import CheatSheetPanel from './components/CheatSheetPanel'
 
 export default function App() {
   const { state, dispatch } = useAppState()
@@ -19,6 +20,27 @@ export default function App() {
   const [quickOpenVisible, setQuickOpenVisible] = useState(false)
   const [projectSearchVisible, setProjectSearchVisible] = useState(false)
   const [currentToast, setCurrentToast] = useState<{ id: string; message: string } | null>(null)
+
+  // Handle pty exit events — mark terminal tabs as exited instead of removing them
+  useEffect(() => {
+    const unsub = window.api.onPtyExit((ptyId) => {
+      const tab = state.tabs.find(t => t.ptyId === ptyId)
+      if (tab) {
+        dispatch({ type: 'SET_TAB_EXITED', tabId: tab.id })
+      }
+    })
+    return unsub
+  }, [state.tabs, dispatch])
+
+  // Handle pty restart from TerminalTab overlay
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { tabId, ptyId } = (e as CustomEvent).detail
+      dispatch({ type: 'RESTART_TAB', tabId, ptyId })
+    }
+    window.addEventListener('pty-restart', handler)
+    return () => window.removeEventListener('pty-restart', handler)
+  }, [dispatch])
 
   useEffect(() => {
     async function init() {
@@ -78,6 +100,11 @@ export default function App() {
       }
       if (isMod && e.key === 's') {
         dispatch({ type: 'TRACK_FEATURE', feature: 'fileSave' })
+      }
+      if (isMod && e.key === '/') {
+        e.preventDefault()
+        dispatch({ type: 'TOGGLE_CHEAT_SHEET' })
+        dispatch({ type: 'TRACK_FEATURE', feature: 'cheatSheet' })
       }
     }
     window.addEventListener('keydown', handler)
@@ -141,7 +168,7 @@ export default function App() {
   const splitTab = state.splitTabId ? state.tabs.find(t => t.id === state.splitTabId) : null
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#1e1e1e' }}>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#FAFAFA' }}>
       <TabBar />
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         <FileExplorer />
@@ -152,8 +179,11 @@ export default function App() {
             .map(tab => (
               <TerminalTab
                 key={tab.id}
+                tabId={tab.id}
                 ptyId={tab.ptyId!}
                 visible={tab.id === state.activeTabId}
+                exited={tab.exited}
+                projectPath={tab.projectPath}
               />
             ))}
           {/* Editor area with optional split */}
@@ -179,7 +209,7 @@ export default function App() {
               {/* Split editor pane */}
               {splitTab && splitTab.type === 'editor' && splitTab.filePath && (
                 <>
-                  <div style={{ width: 1, background: '#3e3e3e', flexShrink: 0 }} />
+                  <div style={{ width: 1, background: '#E5E5E5', flexShrink: 0 }} />
                   <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
                     <div
                       onClick={() => dispatch({ type: 'SET_SPLIT_TAB', tabId: null })}
@@ -188,13 +218,14 @@ export default function App() {
                         top: 4,
                         right: 8,
                         zIndex: 10,
-                        color: '#888',
+                        color: '#666666',
                         cursor: 'pointer',
                         fontSize: 16,
-                        background: '#1e1e1e',
-                        borderRadius: 4,
-                        padding: '0 4px',
+                        background: '#FFFFFF',
+                        borderRadius: 6,
+                        padding: '0 6px',
                         lineHeight: '20px',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                       }}
                       title="Close split"
                     >
@@ -223,6 +254,10 @@ export default function App() {
               ))
           )}
         </div>
+        <CheatSheetPanel
+          open={state.cheatSheetOpen}
+          onClose={() => dispatch({ type: 'TOGGLE_CHEAT_SHEET' })}
+        />
       </div>
       <StatusBar />
       <QuickOpen visible={quickOpenVisible} onClose={closeQuickOpen} />

@@ -9,6 +9,7 @@ export interface Tab {
   projectPath?: string
   filePath?: string
   isDirty?: boolean
+  exited?: boolean
 }
 
 export interface FileNode {
@@ -33,4 +34,5 @@ export interface RecentSession {
   projectPath: string
   branch: string | null
   lastOpened: number
+  queries?: string[]
 }

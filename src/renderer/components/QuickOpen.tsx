@@ -99,7 +99,7 @@ export default function QuickOpen({ visible, onClose }: Props) {
         left: 0,
         right: 0,
         bottom: 0,
-        background: 'rgba(0,0,0,0.5)',
+        background: 'rgba(0,0,0,0.3)',
         zIndex: 1000,
         display: 'flex',
         justifyContent: 'center',
@@ -109,13 +109,13 @@ export default function QuickOpen({ visible, onClose }: Props) {
     >
       <div
         style={{
-          width: 500,
-          maxHeight: 400,
-          background: '#252526',
-          borderRadius: 8,
-          border: '1px solid #3e3e3e',
+          width: 540,
+          maxHeight: 420,
+          background: '#FFFFFF',
+          borderRadius: 12,
+          border: '1px solid #E5E5E5',
           overflow: 'hidden',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          boxShadow: '0 12px 48px rgba(0,0,0,0.15)',
         }}
         onClick={e => e.stopPropagation()}
       >
@@ -127,42 +127,44 @@ export default function QuickOpen({ visible, onClose }: Props) {
           placeholder="Search files by name..."
           style={{
             width: '100%',
-            padding: '12px 16px',
-            background: '#3c3c3c',
+            padding: '14px 18px',
+            background: '#F5F5F5',
             border: 'none',
-            borderBottom: '1px solid #3e3e3e',
-            color: '#fff',
-            fontSize: 14,
+            borderBottom: '1px solid #E5E5E5',
+            color: '#1A1A1A',
+            fontSize: 15,
             outline: 'none',
-            fontFamily: "'SF Mono', Menlo, Consolas, monospace",
+            fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro', 'Segoe UI', system-ui, sans-serif",
             boxSizing: 'border-box',
           }}
         />
-        <div style={{ maxHeight: 340, overflowY: 'auto' }}>
+        <div style={{ maxHeight: 360, overflowY: 'auto' }}>
           {filtered.map((file, i) => (
             <div
               key={file}
               onClick={() => openFile(file)}
               style={{
-                padding: '6px 16px',
+                padding: '10px 18px',
                 cursor: 'pointer',
-                background: i === selectedIndex ? '#094771' : 'transparent',
+                background: i === selectedIndex ? '#EEF2FF' : 'transparent',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                margin: '2px 6px',
+                borderRadius: 6,
               }}
               onMouseEnter={() => setSelectedIndex(i)}
             >
-              <span style={{ color: '#e8e8e8', fontSize: 13 }}>
+              <span style={{ color: '#1A1A1A', fontSize: 14 }}>
                 {file.split('/').pop()}
               </span>
-              <span style={{ color: '#666', fontSize: 11 }}>
+              <span style={{ color: '#999999', fontSize: 12 }}>
                 {file.includes('/') ? file.substring(0, file.lastIndexOf('/')) : ''}
               </span>
             </div>
           ))}
           {filtered.length === 0 && query && (
-            <div style={{ padding: '12px 16px', color: '#666', fontSize: 13 }}>
+            <div style={{ padding: '14px 18px', color: '#999999', fontSize: 14 }}>
               No files found
             </div>
           )}

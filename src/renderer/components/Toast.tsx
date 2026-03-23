@@ -32,36 +32,37 @@ export default function Toast({ message, onDismiss }: Props) {
         position: 'fixed',
         bottom: 40,
         right: 20,
-        maxWidth: 380,
-        background: '#2d2d2d',
-        border: '1px solid #4fc1ff',
-        borderRadius: 8,
-        padding: '12px 16px',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
+        maxWidth: 400,
+        background: '#FFFFFF',
+        border: '1px solid #E5E5E5',
+        borderLeft: '4px solid #2563EB',
+        borderRadius: 12,
+        padding: '16px 20px',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
         zIndex: 2000,
         opacity,
         transition: 'opacity 0.3s ease',
         display: 'flex',
-        gap: 12,
+        gap: 14,
         alignItems: 'flex-start',
       }}
     >
-      <span style={{ color: '#4fc1ff', fontSize: 16, lineHeight: '20px', flexShrink: 0 }}>💡</span>
+      <span style={{ color: '#2563EB', fontSize: 18, lineHeight: '22px', flexShrink: 0 }}>💡</span>
       <span style={{
-        color: '#ddd',
-        fontSize: 13,
-        lineHeight: '20px',
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        color: '#1A1A1A',
+        fontSize: 14,
+        lineHeight: '22px',
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro', 'Segoe UI', system-ui, sans-serif",
       }}>
         {message}
       </span>
       <span
         onClick={handleDismiss}
         style={{
-          color: '#666',
+          color: '#999999',
           cursor: 'pointer',
           fontSize: 16,
-          lineHeight: '20px',
+          lineHeight: '22px',
           flexShrink: 0,
           marginLeft: 4,
         }}

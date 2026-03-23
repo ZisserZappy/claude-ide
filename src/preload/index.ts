@@ -30,6 +30,7 @@ const api = {
   selectDirectory: () => ipcRenderer.invoke('dialog:selectDirectory'),
   getRecentSessions: () => ipcRenderer.invoke('sessions:getRecent'),
   addRecentSession: (projectPath: string) => ipcRenderer.invoke('sessions:addRecent', projectPath),
+  saveSessionQuery: (projectPath: string, query: string) => ipcRenderer.invoke('sessions:saveQuery', projectPath, query),
   listAllFiles: (projectPath: string): Promise<string[]> => ipcRenderer.invoke('fs:listAllFiles', projectPath),
   searchContent: (projectPath: string, query: string): Promise<Array<{ file: string; line: number; text: string }>> => ipcRenderer.invoke('fs:searchContent', projectPath, query),
   inlineEdit: (code: string, prompt: string, filePath: string): Promise<string> => ipcRenderer.invoke('claude:inlineEdit', code, prompt, filePath),

@@ -76,7 +76,7 @@ export default function ProjectSearch({ visible, onClose }: Props) {
         left: 0,
         right: 0,
         bottom: 0,
-        background: 'rgba(0,0,0,0.5)',
+        background: 'rgba(0,0,0,0.3)',
         zIndex: 1000,
         display: 'flex',
         justifyContent: 'center',
@@ -86,13 +86,13 @@ export default function ProjectSearch({ visible, onClose }: Props) {
     >
       <div
         style={{
-          width: 600,
-          maxHeight: 500,
-          background: '#252526',
-          borderRadius: 8,
-          border: '1px solid #3e3e3e',
+          width: 640,
+          maxHeight: 520,
+          background: '#FFFFFF',
+          borderRadius: 12,
+          border: '1px solid #E5E5E5',
           overflow: 'hidden',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          boxShadow: '0 12px 48px rgba(0,0,0,0.15)',
           display: 'flex',
           flexDirection: 'column',
         }}
@@ -107,56 +107,58 @@ export default function ProjectSearch({ visible, onClose }: Props) {
           placeholder="Search in files..."
           style={{
             width: '100%',
-            padding: '12px 16px',
-            background: '#3c3c3c',
+            padding: '14px 18px',
+            background: '#F5F5F5',
             border: 'none',
-            borderBottom: '1px solid #3e3e3e',
-            color: '#fff',
-            fontSize: 14,
+            borderBottom: '1px solid #E5E5E5',
+            color: '#1A1A1A',
+            fontSize: 15,
             outline: 'none',
-            fontFamily: "'SF Mono', Menlo, Consolas, monospace",
+            fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro', 'Segoe UI', system-ui, sans-serif",
             boxSizing: 'border-box',
           }}
         />
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {searching && (
-            <div style={{ padding: '12px 16px', color: '#888', fontSize: 13 }}>Searching...</div>
+            <div style={{ padding: '14px 18px', color: '#666666', fontSize: 14 }}>Searching...</div>
           )}
           {!searching && query.length >= 2 && results.length === 0 && (
-            <div style={{ padding: '12px 16px', color: '#666', fontSize: 13 }}>No results found</div>
+            <div style={{ padding: '14px 18px', color: '#999999', fontSize: 14 }}>No results found</div>
           )}
           {Object.entries(grouped).map(([file, matches]) => (
             <div key={file}>
               <div style={{
-                padding: '6px 16px',
-                color: '#4fc1ff',
+                padding: '8px 18px',
+                color: '#2563EB',
                 fontSize: 12,
-                background: '#2d2d2d',
+                fontWeight: 500,
+                background: '#F5F5F5',
                 position: 'sticky',
                 top: 0,
               }}>
-                {file} <span style={{ color: '#666' }}>({matches.length})</span>
+                {file} <span style={{ color: '#999999' }}>({matches.length})</span>
               </div>
               {matches.map((match, i) => (
                 <div
                   key={`${file}:${match.line}:${i}`}
                   onClick={() => openResult(match)}
                   style={{
-                    padding: '4px 16px 4px 32px',
+                    padding: '5px 18px 5px 32px',
                     cursor: 'pointer',
                     display: 'flex',
                     gap: 12,
                     alignItems: 'baseline',
                     fontSize: 12,
+                    borderRadius: 4,
                   }}
-                  onMouseEnter={e => (e.currentTarget.style.background = '#094771')}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#EEF2FF')}
                   onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                 >
-                  <span style={{ color: '#888', flexShrink: 0, minWidth: 30, textAlign: 'right' }}>
+                  <span style={{ color: '#999999', flexShrink: 0, minWidth: 30, textAlign: 'right' }}>
                     {match.line}
                   </span>
                   <span style={{
-                    color: '#ccc',
+                    color: '#1A1A1A',
                     fontFamily: "'SF Mono', Menlo, Consolas, monospace",
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -171,10 +173,10 @@ export default function ProjectSearch({ visible, onClose }: Props) {
         </div>
         {results.length > 0 && (
           <div style={{
-            padding: '6px 16px',
-            borderTop: '1px solid #3e3e3e',
-            color: '#888',
-            fontSize: 11,
+            padding: '8px 18px',
+            borderTop: '1px solid #E5E5E5',
+            color: '#666666',
+            fontSize: 12,
           }}>
             {results.length} results in {Object.keys(grouped).length} files
           </div>
@@ -192,7 +194,7 @@ function highlightMatch(text: string, query: string): React.ReactNode {
   return (
     <>
       {text.substring(0, idx)}
-      <span style={{ background: '#613214', color: '#fff' }}>{text.substring(idx, idx + query.length)}</span>
+      <span style={{ background: '#FEF3C7', color: '#92400E', borderRadius: 2, padding: '0 2px' }}>{text.substring(idx, idx + query.length)}</span>
       {text.substring(idx + query.length)}
     </>
   )
